@@ -1,0 +1,882 @@
+Here is the updated code. The email field has been removed and replaced with a Full Name / Username input field alongside the Phone Number field for checkout and Paystack payments.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile Data Ghana</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <!-- Paystack Inline JS SDK -->
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f4f7f9;
+      color: #1a1a1a;
+      padding-bottom: 80px;
+    }
+
+    /* Header / Navbar */
+    header {
+      background-color: #0d1e1c;
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+
+    .brand-logo {
+      color: #00e699;
+      font-size: 1.2rem;
+    }
+
+    .signup-btn {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Main Container */
+    .hero {
+      padding: 30px 20px 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .hero h1 {
+      font-size: 2rem;
+      line-height: 1.2;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: #0d1e1c;
+    }
+
+    .hero p {
+      color: #555;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      margin-bottom: 20px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 35px;
+    }
+
+    .btn-primary {
+      background-color: #1d4ed8;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 25px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .btn-secondary {
+      background-color: white;
+      color: #333;
+      border: 1px solid #e5e7eb;
+      padding: 12px 24px;
+      border-radius: 25px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 35px;
+    }
+
+    .stat-card {
+      background-color: white;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    }
+
+    .stat-value {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #d9383a;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    /* Network Selection */
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .section-subtitle {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 16px;
+    }
+
+    .network-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .network-card {
+      background-color: white;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .network-card:hover {
+      border-color: #2563eb;
+    }
+
+    .network-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+
+    .mtn-bg { background-color: #ffcc00; color: black; }
+    .telecel-bg { background-color: #e60000; color: white; }
+    .airteltigo-bg { background-color: #003399; color: white; }
+
+    .network-info h3 {
+      font-size: 1rem;
+      margin-bottom: 2px;
+    }
+
+    .network-info p {
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: 6px;
+    }
+
+    .view-link {
+      font-size: 0.85rem;
+      color: #2563eb;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Dark Bundle View Overlay */
+    .bundle-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #081412;
+      color: white;
+      z-index: 200;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .selected-network-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .network-tag {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: #9ca3af;
+      letter-spacing: 1px;
+    }
+
+    .network-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .category-title {
+      font-size: 1rem;
+      color: #9ca3af;
+      margin: 20px 0 12px;
+      font-weight: 600;
+    }
+
+    .bundle-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .bundle-card {
+      background-color: #10221f;
+      border: 1px solid #1c3834;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .bundle-details h4 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .bundle-details p {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    .price {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: white;
+    }
+
+    .badge {
+      font-size: 0.6rem;
+      background-color: #1c3834;
+      color: #00e699;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      text-transform: uppercase;
+    }
+
+    .badge-no-expire {
+      font-size: 0.6rem;
+      background-color: #059669;
+      color: #ffffff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 4px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .buy-btn {
+      background-color: #00e699;
+      border: none;
+      color: #081412;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 8px 16px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    /* Checkout Popup Modal */
+    .checkout-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .checkout-card {
+      background-color: white;
+      color: #1a1a1a;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 420px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      position: relative;
+    }
+
+    .checkout-card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 6px;
+    }
+
+    .checkout-card p {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .form-group input:focus {
+      border-color: #2563eb;
+    }
+
+    .checkout-summary {
+      background-color: #f3f4f6;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pay-submit-btn {
+      width: 100%;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    /* Footer */
+    footer {
+      background-color: #081412;
+      color: white;
+      padding: 30px 20px;
+      margin-top: 40px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .footer-desc {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .footer-column h5 {
+      font-size: 0.75rem;
+      color: #6b7280;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .footer-column a {
+      display: block;
+      color: white;
+      text-decoration: none;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+
+    .copyright {
+      font-size: 0.75rem;
+      color: #6b7280;
+      border-top: 1px solid #1f2937;
+      padding-top: 15px;
+    }
+
+    /* WhatsApp Button */
+    .whatsapp-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #25d366;
+      color: white;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      text-decoration: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header>
+    <div class="brand" onclick="closeNetwork()">
+      <span class="brand-logo"><i class="fas fa-wifi"></i></span>
+      <span>Mobile Data Ghana</span>
+    </div>
+    <button class="signup-btn">Sign up</button>
+  </header>
+
+  <main class="hero">
+    <h1>Ghana data bundles, paid in seconds.</h1>
+    <p>MTN, Telecel and AirtelTigo bundles — no account needed. Pay with card, mobile money or bank via Paystack.</p>
+
+    <div class="hero-actions">
+      <a href="#networks" class="btn-primary">Buy now <i class="fas fa-arrow-right"></i></a>
+      <button class="btn-secondary">Track order</button>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">10,040+</div>
+        <div class="stat-label">Bundles sold</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">&lt; 60s</div>
+        <div class="stat-label">Avg delivery</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">Networks</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: #10b981;">Support</div>
+        <div class="stat-label">24/7</div>
+      </div>
+    </div>
+
+    <!-- Network Selection -->
+    <div id="networks">
+      <h2 class="section-title">Choose your network</h2>
+      <p class="section-subtitle">Tap a network to see all non-expiring bundles.</p>
+
+      <div class="network-cards">
+        <!-- MTN -->
+        <div class="network-card" onclick="openNetwork('MTN')">
+          <div class="network-icon mtn-bg">MTN</div>
+          <div class="network-info">
+            <h3>MTN</h3>
+            <p>Ghana</p>
+            <div class="view-link">Non-expiry standard, business & mega bundles up to 1TB. View bundles <i class="fas fa-arrow-right"></i></div>
+          </div>
+        </div>
+
+        <!-- Telecel -->
+        <div class="network-card" onclick="openNetwork('Telecel')">
+          <div class="network-icon telecel-bg">telecel</div>
+          <div class="network-info">
+            <h3>Telecel</h3>
+            <p>Ghana</p>
+            <div class="view-link">Non-expiry standard, business & mega bundles up to 1TB. View bundles <i class="fas fa-arrow-right"></i></div>
+          </div>
+        </div>
+
+        <!-- AirtelTigo -->
+        <div class="network-card" onclick="openNetwork('AirtelTigo')">
+          <div class="network-icon airteltigo-bg">AT</div>
+          <div class="network-info">
+            <h3>AirtelTigo</h3>
+            <p>Ghana</p>
+            <div class="view-link">Non-expiry standard, business & mega bundles up to 1TB. View bundles <i class="fas fa-arrow-right"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Dark Bundle View Overlay -->
+  <div id="bundleModal" class="bundle-modal">
+    <div class="modal-header">
+      <div class="brand" onclick="closeNetwork()">
+        <span class="brand-logo"><i class="fas fa-wifi"></i></span>
+        <span>Mobile Data Ghana</span>
+      </div>
+      <button class="close-btn" onclick="closeNetwork()">&times;</button>
+    </div>
+
+    <div class="selected-network-banner">
+      <div id="modalNetworkIcon" class="network-icon"></div>
+      <div>
+        <div class="network-tag">NETWORK</div>
+        <div class="network-title" id="modalNetworkTitle">MTN data bundles</div>
+      </div>
+    </div>
+
+    <div id="bundleContent">
+      <!-- Populated dynamically via JS -->
+    </div>
+
+    <footer>
+      <div class="footer-brand">
+        <span class="brand-logo"><i class="fas fa-wifi"></i></span>
+        <span>Mobile Data Ghana</span>
+      </div>
+      <p class="footer-desc">Instant non-expiry Ghana data bundles for MTN, Telecel and AirtelTigo. Powered by secure Paystack payments.</p>
+      
+      <div class="footer-links">
+        <div class="footer-column">
+          <h5>SHOP</h5>
+          <a href="#" onclick="openNetwork('MTN')">MTN</a>
+          <a href="#" onclick="openNetwork('Telecel')">Telecel</a>
+          <a href="#" onclick="openNetwork('AirtelTigo')">AirtelTigo</a>
+        </div>
+        <div class="footer-column">
+          <h5>SUPPORT</h5>
+          <a href="#">Track order</a>
+          <a href="#">WhatsApp</a>
+        </div>
+      </div>
+      <div class="copyright">
+        &copy; 2026 Mobile Data Ghana. All rights reserved.
+      </div>
+    </footer>
+  </div>
+
+  <!-- Checkout Details Form Modal -->
+  <div id="checkoutModal" class="checkout-modal">
+    <div class="checkout-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3>Complete Purchase</h3>
+        <button class="close-btn" style="color: #1a1a1a;" onclick="closeCheckout()">&times;</button>
+      </div>
+      <p>Enter your details to receive non-expiring data on your target phone number.</p>
+
+      <div class="checkout-summary">
+        <div>
+          <strong id="summaryPlan">MTN 8GB Bundle</strong>
+          <div style="font-size: 0.75rem; color: #666;" id="summaryNetwork">Network: MTN</div>
+          <div style="font-size: 0.75rem; color: #059669; font-weight: 600;">Validity: Non-expiry</div>
+        </div>
+        <div style="font-weight: 800; font-size: 1.1rem; color: #1d4ed8;" id="summaryPrice">GHC 20.66</div>
+      </div>
+
+      <form id="paymentForm" onsubmit="processPaystackPayment(event)">
+        <div class="form-group">
+          <label for="customerName">Full Name / Username</label>
+          <input type="text" id="customerName" placeholder="e.g. John Doe" required>
+        </div>
+
+        <div class="form-group">
+          <label for="recipientPhone">Beneficiary Phone Number (MoMo/Data)</label>
+          <input type="tel" id="recipientPhone" placeholder="e.g. 024XXXXXXX" required pattern="[0-9]{10}">
+        </div>
+
+        <button type="submit" class="pay-submit-btn">Pay Now with Paystack</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- WhatsApp Floating Icon -->
+  <a href="https://wa.me/" target="_blank" class="whatsapp-btn">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+
+  <script>
+    // Paystack Public Key
+    const PAYSTACK_PUBLIC_KEY = 'pk_live_4609250fb08a2c52fd98afafc19869727695835f';
+
+    // Currently Selected Package State
+    let selectedPackage = {
+      network: '',
+      size: '',
+      priceGhc: 0,
+      priceFormatted: ''
+    };
+
+    // Full Bundle Data with Non-Expiry tags and subtexts
+    const bundleData = {
+      MTN: {
+        iconClass: 'mtn-bg',
+        iconText: 'MTN',
+        title: 'MTN data bundles (Non-Expiry)',
+        categories: [
+          {
+            name: 'Standard Bundles',
+            items: [
+              { size: '8GB', price: 'GHC20.66', numericPrice: 20.66, tag: 'STANDARD' },
+              { size: '10GB', price: 'GHC23.55', numericPrice: 23.55, tag: 'STANDARD' },
+              { size: '14GB', price: 'GHC27.33', numericPrice: 27.33, tag: 'STANDARD' },
+              { size: '17GB', price: 'GHC29.99', numericPrice: 29.99, tag: 'STANDARD' },
+              { size: '20GB', price: 'GHC34.99', numericPrice: 34.99, tag: 'STANDARD' },
+              { size: '15GB', price: 'GHC39.45', numericPrice: 39.45, tag: 'STANDARD' }
+            ]
+          },
+          {
+            name: 'Business Bundles',
+            items: [
+              { size: '20GB + 1200 mins', subtext: '1200 minutes included', price: 'GHC63.99', numericPrice: 63.99, tag: 'BUSINESS' },
+              { size: '30GB + 1350 mins', subtext: '1350 minutes included', price: 'GHC100.99', numericPrice: 100.99, tag: 'BUSINESS' },
+              { size: '40GB + 1550 mins', subtext: '1550 minutes included', price: 'GHC133.79', numericPrice: 133.79, tag: 'BUSINESS' },
+              { size: '50GB + 1700 mins', subtext: '1700 minutes included', price: 'GHC155.99', numericPrice: 155.99, tag: 'BUSINESS' }
+            ]
+          },
+          {
+            name: 'Mega Bundles',
+            items: [
+              { size: '500GB', price: 'GHC220.00', numericPrice: 220.00, tag: 'MEGA' },
+              { size: '1TB', price: 'GHC400.00', numericPrice: 400.00, tag: 'MEGA' }
+            ]
+          }
+        ]
+      },
+      Telecel: {
+        iconClass: 'telecel-bg',
+        iconText: 'telecel',
+        title: 'Telecel data bundles (Non-Expiry)',
+        categories: [
+          {
+            name: 'Standard Bundles',
+            items: [
+              { size: '8GB', price: 'GHC17.45', numericPrice: 17.45, tag: 'STANDARD' },
+              { size: '11GB', price: 'GHC21.79', numericPrice: 21.79, tag: 'STANDARD' },
+              { size: '15GB', price: 'GHC43.79', numericPrice: 43.79, tag: 'STANDARD' }
+            ]
+          },
+          {
+            name: 'Business Bundles',
+            items: [
+              { size: '20GB + 100 mins', subtext: '100 minutes included', price: 'GHC79.99', numericPrice: 79.99, tag: 'BUSINESS' },
+              { size: '30GB + 315 mins', subtext: '315 minutes included', price: 'GHC99.99', numericPrice: 99.99, tag: 'BUSINESS' },
+              { size: '40GB + 550 mins', subtext: '550 minutes included', price: 'GHC145.60', numericPrice: 145.60, tag: 'BUSINESS' },
+              { size: '50GB + 1115 mins', subtext: '1115 minutes included', price: 'GHC163.99', numericPrice: 163.99, tag: 'BUSINESS' },
+              { size: '100GB + 1500 mins', subtext: '1500 minutes included', price: 'GHC330.79', numericPrice: 330.79, tag: 'BUSINESS' }
+            ]
+          },
+          {
+            name: 'Mega Bundles',
+            items: [
+              { size: '500GB', price: 'GHC220.00', numericPrice: 220.00, tag: 'MEGA' },
+              { size: '1TB', price: 'GHC400.00', numericPrice: 400.00, tag: 'MEGA' }
+            ]
+          }
+        ]
+      },
+      AirtelTigo: {
+        iconClass: 'airteltigo-bg',
+        iconText: 'AT',
+        title: 'AirtelTigo data bundles (Non-Expiry)',
+        categories: [
+          {
+            name: 'Standard Bundles',
+            items: [
+              { size: '7GB', price: 'GHC20.50', numericPrice: 20.50, tag: 'STANDARD' },
+              { size: '8GB', price: 'GHC22.55', numericPrice: 22.55, tag: 'STANDARD' },
+              { size: '7GB Plus', price: 'GHC26.33', numericPrice: 26.33, tag: 'STANDARD' },
+              { size: '8GB Plus', price: 'GHC29.99', numericPrice: 29.99, tag: 'STANDARD' },
+              { size: '10GB', price: 'GHC34.99', numericPrice: 34.99, tag: 'STANDARD' },
+              { size: '15GB', price: 'GHC39.45', numericPrice: 39.45, tag: 'STANDARD' },
+              { size: '20GB', price: 'GHC66.79', numericPrice: 66.79, tag: 'STANDARD' },
+              { size: '25GB', price: 'GHC87.99', numericPrice: 87.99, tag: 'STANDARD' },
+              { size: '30GB', price: 'GHC105.79', numericPrice: 105.79, tag: 'STANDARD' },
+              { size: '50GB', price: 'GHC155.78', numericPrice: 155.78, tag: 'STANDARD' }
+            ]
+          },
+          {
+            name: 'Mega Bundles',
+            items: [
+              { size: '500GB', price: 'GHC220.00', numericPrice: 220.00, tag: 'MEGA' },
+              { size: '1TB', price: 'GHC400.00', numericPrice: 400.00, tag: 'MEGA' }
+            ]
+          }
+        ]
+      }
+    };
+
+    function openNetwork(networkKey) {
+      const net = bundleData[networkKey];
+      const iconEl = document.getElementById('modalNetworkIcon');
+      
+      iconEl.className = 'network-icon ' + net.iconClass;
+      iconEl.textContent = net.iconText;
+      document.getElementById('modalNetworkTitle').textContent = net.title;
+
+      let htmlContent = '';
+      net.categories.forEach(cat => {
+        htmlContent += `<div class="category-title">${cat.name}</div><div class="bundle-list">`;
+        cat.items.forEach(item => {
+          const subTextFormatted = item.subtext ? `${item.subtext} • Non-Expiry` : 'Does not expire';
+          htmlContent += `
+            <div class="bundle-card">
+              <div class="bundle-details">
+                <h4>
+                  ${item.size} 
+                  <span class="badge">${item.tag}</span>
+                  <span class="badge-no-expire">NON-EXPIRY</span>
+                </h4>
+                <p>${subTextFormatted}</p>
+                <div class="price">${item.price}</div>
+              </div>
+              <button class="buy-btn" onclick="initiateCheckout('${networkKey}', '${item.size}', ${item.numericPrice}, '${item.price}')">
+                Buy <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          `;
+        });
+        htmlContent += `</div>`;
+      });
+
+      document.getElementById('bundleContent').innerHTML = htmlContent;
+      document.getElementById('bundleModal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeNetwork() {
+      document.getElementById('bundleModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+
+    function initiateCheckout(network, size, numericPrice, priceFormatted) {
+      selectedPackage = { network, size, priceGhc: numericPrice, priceFormatted };
+      
+      document.getElementById('summaryPlan').textContent = `${network} ${size} (Non-Expiry)`;
+      document.getElementById('summaryNetwork').textContent = `Network: ${network}`;
+      document.getElementById('summaryPrice').textContent = priceFormatted;
+
+      document.getElementById('checkoutModal').style.display = 'flex';
+    }
+
+    function closeCheckout() {
+      document.getElementById('checkoutModal').style.display = 'none';
+    }
+
+    function processPaystackPayment(e) {
+      e.preventDefault();
+
+      const userName = document.getElementById('customerName').value;
+      const phone = document.getElementById('recipientPhone').value;
+
+      // Generate a fallback dummy email required by Paystack SDK under the hood
+      const generatedEmail = phone + '@mobiledataghana.com';
+
+      // Convert GHC to Pesewas (multiply by 100)
+      const amountInPesewas = Math.round(selectedPackage.priceGhc * 100);
+
+      const handler = PaystackPop.setup({
+        key: PAYSTACK_PUBLIC_KEY,
+        email: generatedEmail,
+        amount: amountInPesewas,
+        currency: 'GHS',
+        metadata: {
+          custom_fields: [
+            {
+              display_name: "Customer Name",
+              variable_name: "customer_name",
+              value: userName
+            },
+            {
+              display_name: "Beneficiary Phone",
+              variable_name: "beneficiary_phone",
+              value: phone
+            },
+            {
+              display_name: "Network",
+              variable_name: "network",
+              value: selectedPackage.network
+            },
+            {
+              display_name: "Package",
+              variable_name: "package",
+              value: selectedPackage.size + " (Non-Expiry)"
+            }
+          ]
+        },
+        callback: function(response) {
+          closeCheckout();
+          alert('Payment Successful! Reference: ' + response.reference + '. Your non-expiring data bundle will be credited shortly.');
+        },
+        onClose: function() {
+          alert('Transaction was not completed.');
+        }
+      });
+
+      handler.openIframe();
+    }
+  </script>
+</body>
+</html>
